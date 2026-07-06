@@ -2,7 +2,7 @@ aws_region = "ap-southeast-2"
 
 instance_type = "t3.micro"
 
-ami = "ami-0f58b397bc5c1f2e8"
+ami = "ami-06259b63260eddc13"
 
 key_name = "spark-1"
 
