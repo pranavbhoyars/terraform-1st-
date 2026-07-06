@@ -25,22 +25,15 @@ pipeline {
         }
 
         stage('Terraform Init') {
-
-            steps {
-
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-prod'
-                ]]) {
-
-                    sh 'terraform init'
-
-                }
-
-            }
-
+    steps {
+        withCredentials([[
+            $class: 'AmazonWebServicesCredentialsBinding',
+            credentialsId: 'aws-prod'
+        ]]) {
+            sh 'terraform init'
         }
-
+    }
+}
         stage('Terraform Format') {
 
             steps {
