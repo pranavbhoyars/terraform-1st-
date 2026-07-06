@@ -16,7 +16,7 @@ pipeline {
 
                 git branch: 'main',
 
-                url: 'https://github.com/your-org/terraform-ec2.git'
+                url: 'https://github.com/pranavbhoyars/terraform-1st-.git'
 
             }
 
