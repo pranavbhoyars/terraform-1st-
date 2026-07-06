@@ -1,103 +1,81 @@
 pipeline {
 
     agent {
-    label 'my-agent'
-}
-
-    environment {
-
-        AWS_REGION = "ap-southeast-2"
-
+        label 'my-agent'
     }
 
     stages {
 
         stage('Checkout') {
-
             steps {
-
                 git branch: 'main',
-
-                url: 'https://github.com/pranavbhoyars/terraform-1st-.git'
-
+                    credentialsId: 'github',
+                    url: 'https://github.com/pranavbhoyars/terraform-1st-.git'
             }
+        }
 
+        stage('Terraform Version') {
+            steps {
+                sh 'terraform version'
+                sh 'aws --version'
+            }
+        }
+
+        stage('AWS Authentication') {
+            steps {
+                sh 'aws sts get-caller-identity'
+            }
         }
 
         stage('Terraform Init') {
-    steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'aws-prod'
-        ]]) {
-            sh 'terraform init'
-        }
-    }
-}
-        stage('Terraform Format') {
-
             steps {
-
-                sh 'terraform fmt'
-
+                sh 'terraform init'
             }
+        }
 
+        stage('Terraform Format') {
+            steps {
+                sh 'terraform fmt -check'
+            }
         }
 
         stage('Terraform Validate') {
-
             steps {
-
                 sh 'terraform validate'
-
             }
-
         }
 
         stage('Terraform Plan') {
-
             steps {
-
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-prod'
-                ]]) {
-
-                    sh 'terraform plan'
-
-                }
-
+                sh 'terraform plan -out=tfplan'
             }
-
         }
 
         stage('Approval') {
-
             steps {
-
-                input "Deploy Infrastructure?"
-
+                input message: 'Do you want to create AWS Infrastructure?'
             }
-
         }
 
         stage('Terraform Apply') {
-
             steps {
-
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-prod'
-                ]]) {
-
-                    sh 'terraform apply -auto-approve'
-
-                }
-
+                sh 'terraform apply -auto-approve tfplan'
             }
-
         }
-
     }
 
+    post {
+
+        success {
+            echo 'Terraform Infrastructure Created Successfully'
+        }
+
+        failure {
+            echo 'Terraform Pipeline Failed'
+        }
+
+        always {
+            cleanWs()
+        }
+    }
 }
