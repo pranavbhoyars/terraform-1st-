@@ -4,6 +4,15 @@ pipeline {
         label 'my-agent'
     }
 
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        AWS_REGION = 'ap-south-1'
+    }
+
     stages {
 
         stage('Checkout') {
@@ -14,16 +23,21 @@ pipeline {
             }
         }
 
-        stage('Terraform Version') {
+        stage('Check Tools') {
             steps {
-                sh 'terraform version'
-                sh 'aws --version'
+                sh '''
+                    terraform version
+                    aws --version
+                    git --version
+                '''
             }
         }
 
-        stage('AWS Authentication') {
+        stage('Verify AWS Access') {
             steps {
-                sh 'aws sts get-caller-identity'
+                sh '''
+                    aws sts get-caller-identity
+                '''
             }
         }
 
@@ -53,7 +67,7 @@ pipeline {
 
         stage('Approval') {
             steps {
-                input message: 'Do you want to create AWS Infrastructure?'
+                input message: 'Do you want to apply Terraform changes?'
             }
         }
 
@@ -62,16 +76,16 @@ pipeline {
                 sh 'terraform apply -auto-approve tfplan'
             }
         }
+
     }
 
     post {
-
         success {
-            echo 'Terraform Infrastructure Created Successfully'
+            echo 'Infrastructure created successfully.'
         }
 
         failure {
-            echo 'Terraform Pipeline Failed'
+            echo 'Pipeline failed.'
         }
 
         always {
